@@ -1,11 +1,9 @@
 local metadata
-local json = require("cph.json")
 local http_server = require "http.server"
--- local json = require "json"
+
 
 local function reply(_server, stream) -- luacheck: ignore 212
 	metadata = assert(stream:get_body_as_string())
-	-- metadataTable = json.parse(req_body)
 	coroutine.yield()
 end
 
@@ -37,7 +35,7 @@ function Start()
 end
 
 function GetInfo()
-	return json.parse(metadata)
+	return vim.fn.json_decode(metadata)
 end
 
 return {
