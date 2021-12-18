@@ -13,9 +13,38 @@ local function SetBufKeyMaps(buffer)
 	vim.api.nvim_buf_set_keymap(buffer, 'n', "q", ":<cmd> lua vim.cmd(\"q!\") <CR><CR>", { noremap = true, silent = true })
 end
 
-local function OpenCenteredWindow()
+local function DrawInputWin()
 	local _width = vim.api.nvim_list_uis()[1].width
 	local _height = vim.api.nvim_list_uis()[1].height
+	INPUT_WIN_ID = vim.api.nvim_open_win(INPUT_BUF_ID, true, { relative="editor",
+				 width= WIDTH, height= HEIGHT,
+				 col= (_width - WIDTH)/2 - ( GAP + 10 ), row=(_height - HEIGHT)/2,
+				 border="rounded"})
+	vim.wo.number = false
+	vim.wo.relativenumber = false
+end
+
+local function DrawOutputWin()
+	local _width = vim.api.nvim_list_uis()[1].width
+	local _height = vim.api.nvim_list_uis()[1].height
+	OUTPUT_WIN_ID = vim.api.nvim_open_win(OUTPUT_BUF_ID, true, { relative="editor",
+				 width= WIDTH, height= HEIGHT,
+				 col= (_width - WIDTH)/2 + (WIDTH/2), row= (_height - HEIGHT)/2,
+				 border="rounded"})
+	vim.wo.number = false
+	vim.wo.relativenumber = false
+end
+
+local function OnResize()
+	if INPUT_WIN_ID ~= nil and OUTPUT_WIN_ID ~= nil then
+		vim.api.nvim_win_close(INPUT_WIN_ID, true)
+		vim.api.nvim_win_close(OUTPUT_WIN_ID, true)
+		DrawInputWin()
+		DrawOutputWin()
+	end
+end
+
+local function OpenCenteredWindow()
 	if INPUT_BUF_ID == nil then
 		INPUT_BUF_ID = vim.api.nvim_create_buf(false, true)
 	end
@@ -23,20 +52,10 @@ local function OpenCenteredWindow()
 		OUTPUT_BUF_ID = vim.api.nvim_create_buf(false, true)
 	end
     if INPUT_WIN_ID == nil then
-        INPUT_WIN_ID = vim.api.nvim_open_win(INPUT_BUF_ID, true, { relative="editor",
-                     width= WIDTH, height= HEIGHT,
-                     col= (_width - WIDTH)/2 - ( GAP + 10 ), row=(_height - HEIGHT)/2,
-                     border="rounded"})
-        vim.wo.number = false
-        vim.wo.relativenumber = false
+		DrawInputWin()
     end
     if OUTPUT_WIN_ID == nil then
-        OUTPUT_WIN_ID = vim.api.nvim_open_win(OUTPUT_BUF_ID, true, { relative="editor",
-                     width= WIDTH, height= HEIGHT,
-                     col= (_width - WIDTH)/2 + (WIDTH/2), row= (_height - HEIGHT)/2,
-                     border="rounded"})
-        vim.wo.number = false
-        vim.wo.relativenumber = false
+		DrawOutputWin()
     end
 	SetBufKeyMaps(INPUT_BUF_ID)
 	SetBufKeyMaps(OUTPUT_BUF_ID)
@@ -69,4 +88,5 @@ end
 return {
 	AddTestCase = AddTestCase,
 	AppendTestCase = AppendTestCase,
+	OnResize = OnResize,
 }
