@@ -11,6 +11,15 @@ T_WIDTH = 40
 GAP = 10
 TestCases = {}
 
+local function GetWinInfo()
+	return {
+		WIDTH = WIDTH,
+		HEIGHT = HEIGHT,
+		T_WIDTH = T_WIDTH,
+		GAP = GAP
+	}
+end
+
 local function SetBufKeyMaps(buffer)
 	vim.api.nvim_buf_set_keymap(buffer, 'n', "<CR>", ":<cmd> lua require(\"cph.ui\").OnEnter()<CR><CR>", { noremap = true, silent = true })
 	vim.api.nvim_buf_set_keymap(buffer, 'n', "q", ":<cmd>  lua require(\"cph.ui\").CloseWindows()<CR><CR>", { noremap = true, silent = true })
@@ -45,6 +54,8 @@ local function DrawTestWin()
 				 width= T_WIDTH, height= _height - 6,
 				 col= _width - T_WIDTH - 5, row= 2,
 				 border="rounded"})
+	vim.cmd("set nolist")
+	vim.cmd("set nomodifiable")
 	vim.wo.number = false
 	vim.wo.relativenumber = false
 end
@@ -89,11 +100,15 @@ local function AddTestCase()
 end
 
 local function OnEnter()
-	local _i = utils.join(vim.api.nvim_buf_get_lines(INPUT_BUF_ID, 0, -1, false))
-	local _o = utils.join(vim.api.nvim_buf_get_lines(OUTPUT_BUF_ID, 0, -1, false))
-	if #_i == 0 or #_o == 0 then
-		print("Fields can't be empty!")
-		return
+	local _it = vim.api.nvim_buf_get_lines(INPUT_BUF_ID, 0, -1, false)
+	local _ot =  vim.api.nvim_buf_get_lines(OUTPUT_BUF_ID, 0, -1, false)
+	local _i = utils.join(_it)
+	local _o = utils.join(_ot)
+	if #_it == 1 or #_ot == 1 then
+		if _it[1] == "" or _ot[1] == "" then
+			print("Fields Can't Be Empty")
+			return
+		end
 	end
 	table.insert(TestCases, { input = _i, output = _o })
 	vim.api.nvim_win_close(INPUT_WIN_ID, true)
@@ -106,15 +121,19 @@ local function OnEnter()
 	OUTPUT_WIN_ID = nil
 end
 
-local function OpenTestCaseWindow()
+local function ToggleTestCaseWindow()
 	if TESTCASE_BUF_ID == nil then
 		TESTCASE_BUF_ID = vim.api.nvim_create_buf(false, true)
 	end
 	if #TestCases ~= 0 then
 		vim.api.nvim_buf_set_lines(TESTCASE_BUF_ID, 0, -1, false, vim.fn.split(utils.GenerateBufferContent(TestCases), "\n"))
+		vim.api.nvim_buf_set_option(TESTCASE_BUF_ID, "filetype", "cph")
 	end
 	if TESTCASE_WIN_ID == nil then
 		DrawTestWin()
+	else
+		vim.api.nvim_win_close(TESTCASE_WIN_ID, true)
+		TESTCASE_WIN_ID = nil
 	end
 end
 
@@ -123,5 +142,6 @@ return {
 	OnEnter = OnEnter,
 	OnResize = OnResize,
 	CloseWindows = CloseWindows,
-	OpenTestCaseWindow = OpenTestCaseWindow,
+	ToggleTestCaseWindow = ToggleTestCaseWindow,
+	GetWinInfo = GetWinInfo,
 }
