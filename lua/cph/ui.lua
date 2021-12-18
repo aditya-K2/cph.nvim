@@ -9,8 +9,8 @@ GAP = 10
 TestCases = {}
 
 local function SetBufKeyMaps(buffer)
-	vim.api.nvim_buf_set_keymap(buffer, 'n', "<CR>", ":<cmd> lua require(\"cph.ui\").AppendTestCase()<CR><CR>", { noremap = true, silent = true })
-	vim.api.nvim_buf_set_keymap(buffer, 'n', "q", ":<cmd> lua vim.cmd(\"q!\") <CR><CR>", { noremap = true, silent = true })
+	vim.api.nvim_buf_set_keymap(buffer, 'n', "<CR>", ":<cmd> lua require(\"cph.ui\").OnEnter()<CR><CR>", { noremap = true, silent = true })
+	vim.api.nvim_buf_set_keymap(buffer, 'n', "q", ":<cmd>  lua require(\"cph.ui\").CloseWindows()<CR><CR>", { noremap = true, silent = true })
 end
 
 local function DrawInputWin()
@@ -33,6 +33,13 @@ local function DrawOutputWin()
 				 border="rounded"})
 	vim.wo.number = false
 	vim.wo.relativenumber = false
+end
+
+local function CloseWindows()
+	vim.api.nvim_win_close(INPUT_WIN_ID, true)
+	vim.api.nvim_win_close(OUTPUT_WIN_ID, true)
+	INPUT_WIN_ID = nil
+	OUTPUT_WIN_ID = nil
 end
 
 local function OnResize()
@@ -63,7 +70,7 @@ local function OpenCenteredWindow()
 	vim.api.nvim_buf_set_name(OUTPUT_BUF_ID, "Enter the Output")
 end
 
-local function AppendTestCase()
+local function OnEnter()
 	local _i = utils.join(vim.api.nvim_buf_get_lines(INPUT_BUF_ID, 0, -1, false))
 	local _o = utils.join(vim.api.nvim_buf_get_lines(OUTPUT_BUF_ID, 0, -1, false))
 	if #_i == 0 or #_o == 0 then
@@ -87,6 +94,7 @@ end
 
 return {
 	AddTestCase = AddTestCase,
-	AppendTestCase = AppendTestCase,
+	OnEnter = OnEnter,
 	OnResize = OnResize,
+	CloseWindows = CloseWindows,
 }
