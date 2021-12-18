@@ -51,7 +51,7 @@ local function OnResize()
 	end
 end
 
-local function OpenCenteredWindow()
+local function AddTestCase()
 	if INPUT_BUF_ID == nil then
 		INPUT_BUF_ID = vim.api.nvim_create_buf(false, true)
 	end
@@ -86,10 +86,6 @@ local function OnEnter()
 	INPUT_WIN_ID = nil
 	OUTPUT_BUF_ID = nil
 	OUTPUT_WIN_ID = nil
-end
-
-local function AddTestCase()
-	OpenCenteredWindow()
 end
 
 return {
