@@ -3,8 +3,11 @@ INPUT_BUF_ID = nil
 OUTPUT_BUF_ID = nil
 INPUT_WIN_ID = nil
 OUTPUT_WIN_ID = nil
+TESTCASE_WIN_ID = nil
+TESTCASE_BUF_ID = nil
 WIDTH = 30
 HEIGHT = 20
+T_WIDTH = 40
 GAP = 10
 TestCases = {}
 
@@ -35,6 +38,17 @@ local function DrawOutputWin()
 	vim.wo.relativenumber = false
 end
 
+local function DrawTestWin()
+	local _width = vim.api.nvim_list_uis()[1].width
+	local _height = vim.api.nvim_list_uis()[1].height
+	TESTCASE_WIN_ID = vim.api.nvim_open_win(TESTCASE_BUF_ID, true, { relative="editor",
+				 width= T_WIDTH, height= _height - 6,
+				 col= _width - T_WIDTH - 5, row= 2,
+				 border="rounded"})
+	vim.wo.number = false
+	vim.wo.relativenumber = false
+end
+
 local function CloseWindows()
 	vim.api.nvim_win_close(INPUT_WIN_ID, true)
 	vim.api.nvim_win_close(OUTPUT_WIN_ID, true)
@@ -48,6 +62,10 @@ local function OnResize()
 		vim.api.nvim_win_close(OUTPUT_WIN_ID, true)
 		DrawInputWin()
 		DrawOutputWin()
+	end
+	if TESTCASE_WIN_ID ~= nil then
+		vim.api.nvim_win_close(TESTCASE_WIN_ID, true)
+		DrawTestWin()
 	end
 end
 
@@ -88,9 +106,22 @@ local function OnEnter()
 	OUTPUT_WIN_ID = nil
 end
 
+local function OpenTestCaseWindow()
+	if TESTCASE_BUF_ID == nil then
+		TESTCASE_BUF_ID = vim.api.nvim_create_buf(false, true)
+	end
+	if #TestCases ~= 0 then
+		vim.api.nvim_buf_set_lines(TESTCASE_BUF_ID, 0, -1, false, vim.fn.split(utils.GenerateBufferContent(TestCases), "\n"))
+	end
+	if TESTCASE_WIN_ID == nil then
+		DrawTestWin()
+	end
+end
+
 return {
 	AddTestCase = AddTestCase,
 	OnEnter = OnEnter,
 	OnResize = OnResize,
 	CloseWindows = CloseWindows,
+	OpenTestCaseWindow = OpenTestCaseWindow,
 }
